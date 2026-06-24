@@ -1,10 +1,12 @@
-<p align="center">
-  <img src="./images/icon.png" alt="Serve Sim" width="96" height="96" />
-</p>
+<div align="center">
+
+<img alt="Serve Sim" width="300" src="./images/readme-logo.png">
 
 # Serve Sim
 
-Mirror iOS Simulator inside VS Code and Cursor.
+Mirror iOS Simulator inside VS Code and Cursor. Powered by [`serve-sim`](https://github.com/EvanBacon/serve-sim)
+
+</div>
 
 > [!NOTE]
 > This extension is a thin editor wrapper around the [`serve-sim`](https://github.com/EvanBacon/serve-sim) CLI. It does not bundle the simulator bridge or native helpers. It finds or downloads the CLI, starts the local preview server, and embeds that preview in an editor webview.
