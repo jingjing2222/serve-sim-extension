@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.0.2
+
+### Patch Changes
+
+- 87815fc: Improve first-run reliability, remove the external browser command, and refresh the README.
+
 ## 0.0.1
 
 ### Patch Changes
