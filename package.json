@@ -1,57 +1,73 @@
 {
   "name": "serve-sim",
   "displayName": "Serve Sim",
-  "description": "Run and mirror iOS Simulator with serve-sim inside VS Code and Cursor.",
   "version": "0.0.1",
-  "publisher": "jingjing2222",
+  "description": "Run and mirror iOS Simulator with serve-sim inside VS Code and Cursor.",
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "cursor",
+    "devtools",
+    "expo",
+    "ios",
+    "ios-simulator",
+    "mirroring",
+    "mobile",
+    "react-native",
+    "serve-sim",
+    "simulator",
+    "streaming",
+    "visual-studio-code",
+    "vscode"
+  ],
+  "homepage": "https://github.com/jingjing2222/serve-sim-extension#readme",
+  "bugs": {
+    "url": "https://github.com/jingjing2222/serve-sim-extension/issues"
+  },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/jingjing2222/serve-sim-extension.git"
   },
-  "bugs": {
-    "url": "https://github.com/jingjing2222/serve-sim-extension/issues"
-  },
-  "homepage": "https://github.com/jingjing2222/serve-sim-extension#readme",
-  "engines": {
-    "vscode": "^1.93.0",
-    "node": ">=20"
-  },
-  "categories": [
-    "Other"
-  ],
-  "icon": "images/icon.png",
-  "galleryBanner": {
-    "color": "#0B1020",
-    "theme": "dark"
-  },
-  "keywords": [
-    "serve-sim",
-    "ios-simulator",
-    "ios",
-    "simulator",
-    "cursor",
-    "vscode",
-    "visual-studio-code",
-    "react-native",
-    "expo",
-    "mobile",
-    "devtools",
-    "mirroring",
-    "streaming"
-  ],
+  "publisher": "jingjing2222",
   "main": "./dist/extension.js",
-  "extensionKind": [
-    "ui"
-  ],
-  "activationEvents": [
-    "onCommand:serveSim.start",
-    "onCommand:serveSim.open",
-    "onCommand:serveSim.stop",
-    "onCommand:serveSim.stopAll",
-    "onCommand:serveSim.restart",
-    "onCommand:serveSim.openExternal"
-  ],
+  "scripts": {
+    "vscode:prepublish": "pnpm run build",
+    "build": "pnpm run check-types && node esbuild.js --production",
+    "compile": "pnpm run check-types && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
+    "lint": "oxlint . --deny-warnings",
+    "typecheck": "pnpm run check-types",
+    "test": "vitest run",
+    "test:extension": "pnpm build && pnpm compile-tests && node ./dist/test/run-test.js",
+    "compile-tests": "tsc -p src/test/tsconfig.json",
+    "watch-tests": "tsc -p src/test/tsconfig.json --watch",
+    "check-types": "tsc --noEmit",
+    "package": "vsce package --no-dependencies",
+    "publish:vsce": "vsce publish --no-dependencies",
+    "publish:ovsx": "pnpm build && ovsx publish",
+    "verify": "pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.2",
+    "@types/vscode": "1.93.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.25.0",
+    "mocha": "^11.0.1",
+    "npm-run-all": "^4.1.5",
+    "ovsx": "^0.10.4",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.71.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.4"
+  },
   "contributes": {
     "commands": [
       {
@@ -158,35 +174,25 @@
       ]
     }
   },
-  "scripts": {
-    "vscode:prepublish": "pnpm run build",
-    "build": "pnpm run check-types && node esbuild.js --production",
-    "compile": "pnpm run check-types && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
-    "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "test": "vitest run",
-    "test:extension": "pnpm build && pnpm compile-tests && node ./dist/test/run-test.js",
-    "compile-tests": "tsc -p src/test/tsconfig.json",
-    "watch-tests": "tsc -p src/test/tsconfig.json --watch",
-    "check-types": "tsc --noEmit",
-    "package": "vsce package --no-dependencies",
-    "publish:vsce": "vsce publish --no-dependencies",
-    "publish:ovsx": "pnpm build && ovsx publish",
-    "verify": "pnpm test && pnpm build"
+  "activationEvents": [
+    "onCommand:serveSim.open",
+    "onCommand:serveSim.openExternal",
+    "onCommand:serveSim.restart",
+    "onCommand:serveSim.start",
+    "onCommand:serveSim.stop",
+    "onCommand:serveSim.stopAll"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0B1020",
+    "theme": "dark"
   },
-  "devDependencies": {
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^22.10.2",
-    "@types/vscode": "1.93.0",
-    "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.2.1",
-    "esbuild": "^0.25.0",
-    "mocha": "^11.0.1",
-    "npm-run-all": "^4.1.5",
-    "ovsx": "^0.10.4",
-    "typescript": "^5.7.2",
-    "vitest": "^3.0.4"
+  "engines": {
+    "node": ">=20",
+    "vscode": "^1.93.0"
   },
   "packageManager": "pnpm@11.0.9",
   "pnpm": {

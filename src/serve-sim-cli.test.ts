@@ -28,19 +28,24 @@ describe("serve-sim CLI", () => {
   });
 
   test("prefers explicit executable", () => {
-    expect(createServeSimCandidates({ executablePath: "/tmp/serve-sim", packageSpec: "serve-sim@latest" }, [])).toEqual([
-      { label: "configured executable", command: "/tmp/serve-sim", prefixArgs: [] },
-    ]);
+    expect(
+      createServeSimCandidates(
+        { executablePath: "/tmp/serve-sim", packageSpec: "serve-sim@latest" },
+        [],
+      ),
+    ).toEqual([{ label: "configured executable", command: "/tmp/serve-sim", prefixArgs: [] }]);
   });
 
   test("resolves workspace CLI before PATH and npx", () => {
     const workspace = "/repo/app";
-    const candidates = createServeSimCandidates(
-      config,
-      [workspace],
-      (path) => path.endsWith("node_modules/.bin/serve-sim"),
+    const candidates = createServeSimCandidates(config, [workspace], (path) =>
+      path.endsWith("node_modules/.bin/serve-sim"),
     );
-    expect(candidates.map((candidate) => candidate.label)).toEqual(["workspace node_modules", "PATH", "npx"]);
+    expect(candidates.map((candidate) => candidate.label)).toEqual([
+      "workspace node_modules",
+      "PATH",
+      "npx",
+    ]);
     expect(candidates[0]?.command).toBe(join(workspace, "node_modules", ".bin", "serve-sim"));
     expect(candidates[2]?.prefixArgs).toEqual(["-y", "serve-sim@latest"]);
   });
@@ -48,7 +53,10 @@ describe("serve-sim CLI", () => {
   test("falls back when first executable is missing", async () => {
     const dir = mkdtempSync(join(tmpdir(), "serve-sim-extension-"));
     const mock = join(dir, "serve-sim");
-    writeFileSync(mock, "#!/bin/sh\nprintf '{\"url\":\"http://127.0.0.1:3200\",\"port\":3200,\"device\":\"ABC\"}'\n");
+    writeFileSync(
+      mock,
+      '#!/bin/sh\nprintf \'{"url":"http://127.0.0.1:3200","port":3200,"device":"ABC"}\'\n',
+    );
     chmodSync(mock, 0o755);
 
     const result = await runServeSimCommand(

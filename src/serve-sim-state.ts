@@ -54,7 +54,9 @@ export function parseDetachOutput(output: string): ServeSimStream[] {
   if (single) return [single];
 
   if (Array.isArray(data.devices)) {
-    const streams = data.devices.map(asStream).filter((stream): stream is ServeSimStream => Boolean(stream));
+    const streams = data.devices
+      .map(asStream)
+      .filter((stream): stream is ServeSimStream => Boolean(stream));
     if (streams.length > 0) return streams;
   }
 
@@ -75,7 +77,9 @@ export function parseListOutput(output: string): ServeSimListState {
   }
 
   if (data.running === true && Array.isArray(data.streams)) {
-    const streams = data.streams.map(asStream).filter((stream): stream is ServeSimStream => Boolean(stream));
+    const streams = data.streams
+      .map(asStream)
+      .filter((stream): stream is ServeSimStream => Boolean(stream));
     return { running: streams.length > 0, streams };
   }
 

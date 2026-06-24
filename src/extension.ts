@@ -46,7 +46,12 @@ export function activate(context: vscode.ExtensionContext): void {
         ensureDarwin();
         panel.reveal();
         await panel.showStatus("Starting Serve Sim preview...");
-        const result = await startPreview(context, output, previewProcess, panel.showStatus.bind(panel));
+        const result = await startPreview(
+          context,
+          output,
+          previewProcess,
+          panel.showStatus.bind(panel),
+        );
         previewProcess = result.process;
         if (readConfig().autoOpenPanel) await panel.showStream(result.stream);
       });
@@ -57,7 +62,12 @@ export function activate(context: vscode.ExtensionContext): void {
       try {
         ensureDarwin();
         await panel.showStatus("Starting Serve Sim preview...");
-        const result = await getActiveOrStart(context, output, previewProcess, panel.showStatus.bind(panel));
+        const result = await getActiveOrStart(
+          context,
+          output,
+          previewProcess,
+          panel.showStatus.bind(panel),
+        );
         if (result.process) previewProcess = result.process;
         await panel.showStream(result.stream);
       } catch (error) {
@@ -109,7 +119,12 @@ export function activate(context: vscode.ExtensionContext): void {
           await runCli(context, createKillArgs(stream.device), output);
         }
         await panel.showStatus("Restarting Serve Sim preview...");
-        const next = await startPreview(context, output, previewProcess, panel.showStatus.bind(panel));
+        const next = await startPreview(
+          context,
+          output,
+          previewProcess,
+          panel.showStatus.bind(panel),
+        );
         previewProcess = next.process;
         await panel.showStream(next.stream);
       });
@@ -130,7 +145,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {}
 
-async function withUserError(output: vscode.OutputChannel, run: () => Promise<void>): Promise<void> {
+async function withUserError(
+  output: vscode.OutputChannel,
+  run: () => Promise<void>,
+): Promise<void> {
   try {
     await run();
   } catch (error) {
@@ -162,7 +180,11 @@ function workspaceFolderPaths(): string[] {
   return (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
 }
 
-async function runCli(context: vscode.ExtensionContext, args: readonly string[], output: vscode.OutputChannel) {
+async function runCli(
+  context: vscode.ExtensionContext,
+  args: readonly string[],
+  output: vscode.OutputChannel,
+) {
   const config = readConfig();
   const candidates = createServeSimCandidates(config, workspaceFolderPaths());
   const result = await runServeSimCommand(candidates, args, output);
@@ -186,11 +208,13 @@ async function startPreview(
   await reportStatus?.("Checking for a booted iOS Simulator...");
   const booted = await waitForAnyBootedSimulator();
   if (!booted) {
-    throw new Error("No booted iOS Simulator was found. Choose a simulator from the overlay, then Serve Sim will restart.");
+    throw new Error(
+      "No booted iOS Simulator was found. Choose a simulator from the overlay, then Serve Sim will restart.",
+    );
   }
 
   const existingActive = context.globalState.get<ServeSimStream>(stateKey);
-  if (existing && existingActive?.url === url && await isPreviewReady(url)) {
+  if (existing && existingActive?.url === url && (await isPreviewReady(url))) {
     return { stream: existingActive, process: existing };
   }
 
@@ -198,7 +222,11 @@ async function startPreview(
 
   const candidates = createServeSimCandidates(config, workspaceFolderPaths());
   await reportStatus?.(`Mirroring ${booted.name} with Serve Sim...`);
-  const process = await startServeSimCommand(candidates, createStartArgs(config, booted.udid), output);
+  const process = await startServeSimCommand(
+    candidates,
+    createStartArgs(config, booted.udid),
+    output,
+  );
   output.appendLine(`serve-sim preview via ${process.candidate.label}`);
 
   try {
@@ -217,7 +245,10 @@ async function startPreview(
   return { stream, process };
 }
 
-async function listStreams(context: vscode.ExtensionContext, output: vscode.OutputChannel): Promise<ServeSimStream[]> {
+async function listStreams(
+  context: vscode.ExtensionContext,
+  output: vscode.OutputChannel,
+): Promise<ServeSimStream[]> {
   const result = await runCli(context, createListArgs(), output);
   return parseListOutput(result.stdout).streams;
 }
@@ -241,7 +272,7 @@ async function getActiveOrStart(
   reportStatus?: (message: string) => Promise<void>,
 ): Promise<PreviewStartResult> {
   const active = await getActiveOrListed(context, output);
-  if (active && await isPreviewReady(active.url)) {
+  if (active && (await isPreviewReady(active.url))) {
     return previewProcess ? { stream: active, process: previewProcess } : { stream: active };
   }
   return startPreview(context, output, previewProcess, reportStatus);
@@ -260,7 +291,11 @@ function isPreviewReady(url: string): Promise<boolean> {
   return new Promise((resolve) => {
     const request = http.get(url, (response) => {
       response.resume();
-      resolve(response.statusCode !== undefined && response.statusCode >= 200 && response.statusCode < 400);
+      resolve(
+        response.statusCode !== undefined &&
+          response.statusCode >= 200 &&
+          response.statusCode < 400,
+      );
     });
     request.setTimeout(1000, () => {
       request.destroy();
