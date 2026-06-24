@@ -1,40 +1,47 @@
-name: Publish extension
+name: Publish Extension
 
 on:
-  workflow_dispatch:
-    inputs:
-      target:
-        description: "Publish target"
-        required: true
-        default: "both"
-        type: choice
-        options:
-          - both
-          - marketplace
-          - open-vsx
+  push:
+    tags:
+      - "v*"
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
-        with:
-          version: 11.0.9
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
-      - run: pnpm build
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build and package extension
+        run: pnpm package
+
       - name: Publish to Visual Studio Marketplace
-        if: inputs.target == 'both' || inputs.target == 'marketplace'
         env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: pnpm publish:vsce -p "$VSCE_PAT"
+          VSCODE_PAT: ${{ secrets.VSCODE_PAT }}
+        run: pnpm publish:vsce -p "$VSCODE_PAT"
+
       - name: Publish to Open VSX
-        if: inputs.target == 'both' || inputs.target == 'open-vsx'
         env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        run: pnpm publish:ovsx -p "$OVSX_PAT"
+          VSX_PAT: ${{ secrets.VSX_PAT }}
+        run: pnpm publish:ovsx -p "$VSX_PAT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "*.vsix"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
