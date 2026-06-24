@@ -1,7 +1,7 @@
 {
   "name": "serve-sim",
   "displayName": "Serve Sim",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Run and mirror iOS Simulator with serve-sim inside VS Code and Cursor.",
   "categories": [
     "Other"
