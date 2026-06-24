@@ -76,7 +76,9 @@ export async function bootSimulator(udid: string): Promise<void> {
   await execFileAsync("open", ["-ga", "Simulator"]);
 }
 
-export async function waitForAnyBootedSimulator(timeoutMs = 60_000): Promise<SimulatorDevice | undefined> {
+export async function waitForAnyBootedSimulator(
+  timeoutMs = 60_000,
+): Promise<SimulatorDevice | undefined> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const state = await listIosSimulators();

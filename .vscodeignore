@@ -1,4 +1,5 @@
 .github/**
+.changeset/**
 .vscode/**
 .vscode-test/**
 .gitignore
@@ -12,6 +13,7 @@ tsconfig.json
 esbuild.js
 vitest.config.ts
 .vscode-test.mjs
+.oxfmtrc.json
 pnpm-lock.yaml
 pnpm-workspace.yaml
 .npmrc

@@ -17,15 +17,24 @@ describe("serve-sim state parsing", () => {
 
   test("parses multi-device detach streams", () => {
     const second = { ...stream, device: "DEF", port: 3201, url: "http://127.0.0.1:3201" };
-    expect(parseDetachOutput(JSON.stringify({ devices: [stream, second] }))).toEqual([stream, second]);
+    expect(parseDetachOutput(JSON.stringify({ devices: [stream, second] }))).toEqual([
+      stream,
+      second,
+    ]);
   });
 
   test("parses stopped list state", () => {
-    expect(parseListOutput(JSON.stringify({ running: false }))).toEqual({ running: false, streams: [] });
+    expect(parseListOutput(JSON.stringify({ running: false }))).toEqual({
+      running: false,
+      streams: [],
+    });
   });
 
   test("parses single running list state", () => {
-    expect(parseListOutput(JSON.stringify({ running: true, ...stream }))).toEqual({ running: true, streams: [stream] });
+    expect(parseListOutput(JSON.stringify({ running: true, ...stream }))).toEqual({
+      running: true,
+      streams: [stream],
+    });
   });
 
   test("parses multi running list state", () => {

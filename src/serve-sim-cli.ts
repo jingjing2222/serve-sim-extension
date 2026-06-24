@@ -33,7 +33,10 @@ export interface OutputSink {
   appendLine(value: string): void;
 }
 
-export function createStartArgs(config: Pick<ServeSimConfig, "port" | "codec">, device?: string): string[] {
+export function createStartArgs(
+  config: Pick<ServeSimConfig, "port" | "codec">,
+  device?: string,
+): string[] {
   const args = ["--port", String(config.port)];
   if (config.codec !== "auto") args.push("--codec", config.codec);
   if (device) args.push(device);
@@ -80,7 +83,10 @@ function shellLine(candidate: ServeSimCandidate, args: readonly string[]): strin
   return `$ ${candidate.command} ${[...candidate.prefixArgs, ...args].join(" ")}`;
 }
 
-function runCandidate(candidate: ServeSimCandidate, args: readonly string[]): Promise<CommandResult> {
+function runCandidate(
+  candidate: ServeSimCandidate,
+  args: readonly string[],
+): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     const child = spawn(candidate.command, [...candidate.prefixArgs, ...args], {
       env: { ...process.env, FORCE_COLOR: "0" },
@@ -172,8 +178,12 @@ function startCandidate(
     });
     let settled = false;
 
-    child.stdout?.on("data", (chunk: Buffer) => output?.appendLine(chunk.toString("utf8").trimEnd()));
-    child.stderr?.on("data", (chunk: Buffer) => output?.appendLine(chunk.toString("utf8").trimEnd()));
+    child.stdout?.on("data", (chunk: Buffer) =>
+      output?.appendLine(chunk.toString("utf8").trimEnd()),
+    );
+    child.stderr?.on("data", (chunk: Buffer) =>
+      output?.appendLine(chunk.toString("utf8").trimEnd()),
+    );
     child.on("error", (error) => {
       if (!settled) {
         settled = true;

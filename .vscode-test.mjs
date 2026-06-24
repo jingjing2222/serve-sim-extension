@@ -1,3 +1,3 @@
 export default {
-  files: "out/test/suite/**/*.test.js"
+  files: "out/test/suite/**/*.test.js",
 };

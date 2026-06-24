@@ -3,10 +3,7 @@
   "tasks": [
     {
       "label": "watch",
-      "dependsOn": [
-        "pnpm: watch:tsc",
-        "pnpm: watch:esbuild"
-      ],
+      "dependsOn": ["pnpm: watch:tsc", "pnpm: watch:esbuild"],
       "presentation": {
         "reveal": "never"
       },

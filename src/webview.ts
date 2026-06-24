@@ -23,10 +23,15 @@ export class ServeSimPanel {
     if (this.panel) {
       this.panel.reveal(vscode.ViewColumn.Beside);
     } else {
-      this.panel = vscode.window.createWebviewPanel(viewType, "Serve Sim", vscode.ViewColumn.Beside, {
-        enableScripts: true,
-        retainContextWhenHidden: true,
-      });
+      this.panel = vscode.window.createWebviewPanel(
+        viewType,
+        "Serve Sim",
+        vscode.ViewColumn.Beside,
+        {
+          enableScripts: true,
+          retainContextWhenHidden: true,
+        },
+      );
       this.messageDisposable = this.panel.webview.onDidReceiveMessage((message: unknown) => {
         void this.handleMessage(message);
       });
@@ -59,7 +64,8 @@ export class ServeSimPanel {
   }
 
   private async handleMessage(message: unknown): Promise<void> {
-    if (!this.panel || typeof message !== "object" || message === null || !("type" in message)) return;
+    if (!this.panel || typeof message !== "object" || message === null || !("type" in message))
+      return;
     const type = (message as { type?: unknown }).type;
     if (type === "ready" || type === "refreshSimulators") {
       await this.postSimulatorState();
