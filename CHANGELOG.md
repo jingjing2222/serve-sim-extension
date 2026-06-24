@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.0.3
+
+### Patch Changes
+
+- 9c3af05: Remove the floating webview toolbar so recovery controls stay inside the main panel UI.
+
 ## 0.0.2
 
 ### Patch Changes
