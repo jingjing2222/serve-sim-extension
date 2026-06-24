@@ -10,6 +10,6 @@ suite("Serve Sim extension", () => {
     assert.ok(commands.includes("serveSim.stop"));
     assert.ok(commands.includes("serveSim.stopAll"));
     assert.ok(commands.includes("serveSim.restart"));
-    assert.ok(commands.includes("serveSim.openExternal"));
+    assert.ok(!commands.includes("serveSim.openExternal"));
   });
 });

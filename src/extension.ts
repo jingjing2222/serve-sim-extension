@@ -11,7 +11,7 @@ import {
   type ServeSimConfig,
 } from "./serve-sim-cli";
 import { parseListOutput, pickFirstStream, type ServeSimStream } from "./serve-sim-state";
-import { bootSimulator, listIosSimulators, waitForAnyBootedSimulator } from "./simulators";
+import { bootSimulator, findBootedSimulator, listIosSimulators } from "./simulators";
 import { ServeSimPanel } from "./webview";
 
 const stateKey = "serveSim.activeStream";
@@ -21,12 +21,26 @@ export function activate(context: vscode.ExtensionContext): void {
   let previewProcess: RunningCommand | undefined;
   const panel = new ServeSimPanel(context.extensionUri, {
     getSimulatorState: listIosSimulators,
+    startPreview: async (reportStatus) => {
+      const next = await startPreview(context, output, previewProcess, reportStatus);
+      previewProcess = next.process;
+      return next.stream;
+    },
+    restartPreview: async (reportStatus) => {
+      await stopActivePreview(context, output, previewProcess);
+      previewProcess = undefined;
+      const next = await startPreview(context, output, undefined, reportStatus);
+      previewProcess = next.process;
+      return next.stream;
+    },
+    stopPreview: async () => {
+      await stopActivePreview(context, output, previewProcess);
+      previewProcess = undefined;
+    },
     bootSimulator: async (udid) => {
       await bootSimulator(udid);
-      if (previewProcess) {
-        previewProcess.child.kill("SIGTERM");
-        previewProcess = undefined;
-      }
+      await stopActivePreview(context, output, previewProcess);
+      previewProcess = undefined;
       const next = await startPreview(context, output, undefined);
       previewProcess = next.process;
       return next.stream;
@@ -86,13 +100,8 @@ export function activate(context: vscode.ExtensionContext): void {
           vscode.window.showInformationMessage("No serve-sim stream is running.");
           return;
         }
-        if (previewProcess) {
-          previewProcess.child.kill("SIGTERM");
-          previewProcess = undefined;
-        } else {
-          await runCli(context, createKillArgs(stream.device), output);
-        }
-        await context.globalState.update(stateKey, undefined);
+        await stopActivePreview(context, output, previewProcess, stream);
+        previewProcess = undefined;
         vscode.window.showInformationMessage("Serve Sim stream stopped.");
       });
     }),
@@ -112,12 +121,8 @@ export function activate(context: vscode.ExtensionContext): void {
       await withUserError(output, async () => {
         ensureDarwin();
         const stream = await getActiveOrListed(context, output);
-        if (previewProcess) {
-          previewProcess.child.kill("SIGTERM");
-          previewProcess = undefined;
-        } else if (stream) {
-          await runCli(context, createKillArgs(stream.device), output);
-        }
+        await stopActivePreview(context, output, previewProcess, stream);
+        previewProcess = undefined;
         await panel.showStatus("Restarting Serve Sim preview...");
         const next = await startPreview(
           context,
@@ -127,17 +132,6 @@ export function activate(context: vscode.ExtensionContext): void {
         );
         previewProcess = next.process;
         await panel.showStream(next.stream);
-      });
-    }),
-    vscode.commands.registerCommand("serveSim.openExternal", async () => {
-      await withUserError(output, async () => {
-        ensureDarwin();
-        const stream = await getActiveOrListed(context, output);
-        if (!stream) {
-          vscode.window.showInformationMessage("No serve-sim stream is running.");
-          return;
-        }
-        await vscode.env.openExternal(vscode.Uri.parse(stream.url));
       });
     }),
   );
@@ -206,7 +200,7 @@ async function startPreview(
   const config = readConfig();
   const url = `http://127.0.0.1:${config.port}`;
   await reportStatus?.("Checking for a booted iOS Simulator...");
-  const booted = await waitForAnyBootedSimulator();
+  const booted = await findBootedSimulator();
   if (!booted) {
     throw new Error(
       "No booted iOS Simulator was found. Choose a simulator from the overlay, then Serve Sim will restart.",
@@ -231,7 +225,7 @@ async function startPreview(
 
   try {
     await reportStatus?.("Waiting for Serve Sim preview to become ready...");
-    await waitForPreview(url);
+    await waitForPreview(url, process);
   } catch (error) {
     process.child.kill("SIGTERM");
     throw error;
@@ -278,13 +272,49 @@ async function getActiveOrStart(
   return startPreview(context, output, previewProcess, reportStatus);
 }
 
-async function waitForPreview(url: string): Promise<void> {
+async function waitForPreview(url: string, process?: RunningCommand): Promise<void> {
   const deadline = Date.now() + 20_000;
   while (Date.now() < deadline) {
     if (await isPreviewReady(url)) return;
+    if (process && process.child.exitCode !== null) {
+      throw new Error(formatPreviewProcessExit(process, url));
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  throw new Error(`serve-sim preview did not become ready at ${url}.`);
+  throw new Error(formatPreviewTimeout(process, url));
+}
+
+function formatPreviewProcessExit(process: RunningCommand, url: string): string {
+  const details = process.getOutput().trim();
+  const suffix = details ? `\n\nserve-sim output:\n${details}` : "";
+  return `${process.candidate.label} exited before Serve Sim became ready at ${url}.${fallbackHint(process)}${suffix}`;
+}
+
+function formatPreviewTimeout(process: RunningCommand | undefined, url: string): string {
+  const via = process ? `${process.candidate.label} ` : "";
+  const details = process?.getOutput().trim();
+  const suffix = details ? `\n\nserve-sim output:\n${details}` : "";
+  return `${via}serve-sim preview did not become ready at ${url}.${process ? fallbackHint(process) : ""}${suffix}`;
+}
+
+function fallbackHint(process: RunningCommand): string {
+  if (process.candidate.label !== "npx") return "";
+  return " The extension used the npx fallback. Install serve-sim in the workspace or set serveSim.executablePath if npx is slow or blocked.";
+}
+
+async function stopActivePreview(
+  context: vscode.ExtensionContext,
+  output: vscode.OutputChannel,
+  previewProcess: RunningCommand | undefined,
+  stream = context.globalState.get<ServeSimStream>(stateKey),
+): Promise<void> {
+  if (previewProcess) {
+    previewProcess.child.kill("SIGTERM");
+  }
+  if (stream) {
+    await runCli(context, createKillArgs(stream.device), output);
+  }
+  await context.globalState.update(stateKey, undefined);
 }
 
 function isPreviewReady(url: string): Promise<boolean> {
