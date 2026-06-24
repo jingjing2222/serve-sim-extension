@@ -27,6 +27,7 @@ export interface CommandResult {
 export interface RunningCommand {
   candidate: ServeSimCandidate;
   child: ChildProcess;
+  getOutput(): string;
 }
 
 export interface OutputSink {
@@ -151,8 +152,8 @@ export async function startServeSimCommand(
   for (const candidate of candidates) {
     output?.appendLine(shellLine(candidate, args));
     try {
-      const child = await startCandidate(candidate, args, output);
-      return { candidate, child };
+      const process = await startCandidate(candidate, args, output);
+      return { candidate, ...process };
     } catch (error) {
       const err = error as NodeJS.ErrnoException;
       if (isMissingExecutable(err) && candidate.label !== "npx") {
@@ -170,20 +171,28 @@ function startCandidate(
   candidate: ServeSimCandidate,
   args: readonly string[],
   output?: OutputSink,
-): Promise<ChildProcess> {
+): Promise<Omit<RunningCommand, "candidate">> {
   return new Promise((resolve, reject) => {
     const child = spawn(candidate.command, [...candidate.prefixArgs, ...args], {
       env: { ...process.env, FORCE_COLOR: "0" },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let settled = false;
+    const recentOutput: string[] = [];
 
-    child.stdout?.on("data", (chunk: Buffer) =>
-      output?.appendLine(chunk.toString("utf8").trimEnd()),
-    );
-    child.stderr?.on("data", (chunk: Buffer) =>
-      output?.appendLine(chunk.toString("utf8").trimEnd()),
-    );
+    function appendOutput(chunk: Buffer): void {
+      recentOutput.push(chunk.toString("utf8"));
+      while (recentOutput.join("").length > 4000) recentOutput.shift();
+    }
+
+    child.stdout?.on("data", (chunk: Buffer) => {
+      appendOutput(chunk);
+      output?.appendLine(chunk.toString("utf8").trimEnd());
+    });
+    child.stderr?.on("data", (chunk: Buffer) => {
+      appendOutput(chunk);
+      output?.appendLine(chunk.toString("utf8").trimEnd());
+    });
     child.on("error", (error) => {
       if (!settled) {
         settled = true;
@@ -193,7 +202,7 @@ function startCandidate(
     child.on("spawn", () => {
       if (!settled) {
         settled = true;
-        resolve(child);
+        resolve({ child, getOutput: () => recentOutput.join("") });
       }
     });
   });

@@ -12,6 +12,10 @@ describe("Serve Sim webview", () => {
     expect(html).toContain("frame-src http://127.0.0.1:* http://localhost:*");
     expect(html).toContain("Choose an iOS Simulator");
     expect(html).toContain("Pick a booted simulator to mirror it");
+    expect(html).toContain("Retry Preview");
+    expect(html).toContain("Restart");
+    expect(html).toContain("Stop");
+    expect(html).not.toContain("Open in Browser");
     expect(html).toContain('src="http://127.0.0.1:3200"');
     expect(html).toContain("Serve Sim - ABC");
   });

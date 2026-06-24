@@ -1,39 +1,40 @@
+<p align="center">
+  <img src="./images/icon.png" alt="Serve Sim" width="96" height="96" />
+</p>
+
 # Serve Sim
 
-Run and mirror iOS Simulator with [`serve-sim`](https://github.com/EvanBacon/serve-sim) inside VS Code and Cursor.
+Mirror iOS Simulator inside VS Code and Cursor.
 
-This extension is a thin wrapper around the `serve-sim` CLI. It opens a local preview panel, detects installed iOS Simulators, boots selected devices, and mirrors the active simulator stream inside an editor webview.
+> [!NOTE]
+> This extension is a thin editor wrapper around the [`serve-sim`](https://github.com/EvanBacon/serve-sim) CLI. It does not bundle the simulator bridge or native helpers. It finds or downloads the CLI, starts the local preview server, and embeds that preview in an editor webview.
 
-## Features
+## Overview
 
-- Open a reusable Serve Sim panel inside VS Code or Cursor.
-- Detect installed iOS Simulators and show a device picker when no simulator is booted.
-- Boot a selected simulator, wait for `simctl bootstatus`, then mirror that device.
-- Start the `serve-sim --port <port> <udid>` preview server from the command palette.
-- Stop the active stream, stop all streams, restart, or open the preview in your browser.
-- Resolve the CLI from a configured path, workspace `node_modules/.bin`, PATH, then `npx -y serve-sim@latest`.
+Serve Sim keeps the simulator preview next to your code. Open the panel, pick an installed iOS Simulator if needed, and the extension boots or mirrors the selected device through `serve-sim`.
+
+The extension focuses on the local desktop workflow:
+
+- Reusable preview panel for VS Code and Cursor.
+- Installed iOS Simulator picker when no device is booted.
+- Boot, wait, mirror, restart, and stop controls from the panel.
+- CLI resolution through `serveSim.executablePath`, workspace `node_modules/.bin`, PATH, then `npx -y serve-sim@latest`.
+- Clear recovery UI when the preview is not ready or no booted simulator is available.
 
 ## Requirements
 
 - macOS
 - Xcode with iOS Simulator
 - Node.js 20+
-- `npx` available on PATH for the package fallback
-
-## How It Works
-
-`Serve Sim: Open Panel` shows the panel immediately, then checks simulator state. If an iOS Simulator is already booted, the extension mirrors that device. If none is booted, the panel shows installed simulators so you can choose one to boot and mirror.
-
-The extension does not bundle `serve-sim` or any native helpers. It shells out to your configured CLI, workspace install, PATH, or `npx`.
+- `npx` on PATH when using the package fallback
 
 ## Commands
 
-- `Serve Sim: Start`
 - `Serve Sim: Open Panel`
+- `Serve Sim: Start`
+- `Serve Sim: Restart`
 - `Serve Sim: Stop Active Stream`
 - `Serve Sim: Stop All Streams`
-- `Serve Sim: Restart`
-- `Serve Sim: Open in Browser`
 
 ## Settings
 
@@ -45,8 +46,6 @@ The extension does not bundle `serve-sim` or any native helpers. It shells out t
 
 ## Development
 
-This repo follows the `yo code` TypeScript + esbuild scaffold, with `pnpm` as the package manager.
-
 ```sh
 pnpm install
 pnpm test
@@ -55,15 +54,6 @@ pnpm package
 ```
 
 Run the extension with the `Run Extension` launch config.
-
-## Publishing
-
-Manual GitHub Actions workflows publish to Visual Studio Marketplace and Open VSX.
-
-Required secrets:
-
-- `VSCODE_PAT`
-- `VSX_PAT`
 
 ## License
 

@@ -76,17 +76,21 @@ export async function bootSimulator(udid: string): Promise<void> {
   await execFileAsync("open", ["-ga", "Simulator"]);
 }
 
+export async function findBootedSimulator(): Promise<SimulatorDevice | undefined> {
+  const state = await listIosSimulators();
+  const booted = state.devices.find((device) => device.state === "Booted");
+  if (!booted) return undefined;
+  await execFileAsync("xcrun", ["simctl", "bootstatus", booted.udid, "-b"]);
+  return booted;
+}
+
 export async function waitForAnyBootedSimulator(
   timeoutMs = 60_000,
 ): Promise<SimulatorDevice | undefined> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const state = await listIosSimulators();
-    const booted = state.devices.find((device) => device.state === "Booted");
-    if (booted) {
-      await execFileAsync("xcrun", ["simctl", "bootstatus", booted.udid, "-b"]);
-      return booted;
-    }
+    const booted = await findBootedSimulator();
+    if (booted) return booted;
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   return undefined;

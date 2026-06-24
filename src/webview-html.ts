@@ -70,6 +70,40 @@ export function renderWebviewHtml(cspSource: string, stream?: ServeSimStream): s
       font-size: 13px;
       line-height: 1.45;
     }
+    .status-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .toolbar {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 8;
+      display: flex;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 6px;
+      background: var(--vscode-sideBar-background);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+    }
+    .toolbar button,
+    .status-actions button,
+    .refresh {
+      border: 1px solid var(--vscode-button-border, transparent);
+      border-radius: 4px;
+      padding: 6px 10px;
+      color: var(--vscode-button-foreground);
+      background: var(--vscode-button-background);
+      cursor: pointer;
+      font: inherit;
+    }
+    .toolbar button:hover,
+    .status-actions button:hover,
+    .refresh:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
     .overlay {
       position: fixed;
       inset: 0;
@@ -162,25 +196,26 @@ export function renderWebviewHtml(cspSource: string, stream?: ServeSimStream): s
       color: var(--vscode-descriptionForeground);
       font-size: 12px;
     }
-    .refresh {
-      border: 1px solid var(--vscode-button-border, transparent);
-      border-radius: 4px;
-      padding: 6px 10px;
-      color: var(--vscode-button-foreground);
-      background: var(--vscode-button-background);
-      cursor: pointer;
-    }
-    .refresh:hover {
-      background: var(--vscode-button-hoverBackground);
+    .footer-actions {
+      display: flex;
+      gap: 8px;
     }
   </style>
 </head>
 <body>
   <iframe id="preview" class="${stream ? "" : "pending"}" title="${title}" ${stream ? `src="${url}"` : ""} allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+  <nav class="toolbar" aria-label="Serve Sim controls">
+    <button id="chooseSimulator" type="button">Choose Simulator</button>
+    <button id="restartPreview" type="button">Restart</button>
+    <button id="stopPreview" type="button">Stop</button>
+  </nav>
   <main id="statusScreen" class="status-screen ${stream ? "hidden" : ""}">
     <section class="status-card">
       <h1 class="status-title">Serve Sim</h1>
       <p id="previewStatus" class="status-message">Opening the Serve Sim panel...</p>
+      <div class="status-actions">
+        <button id="retryPreview" type="button">Retry Preview</button>
+      </div>
     </section>
   </main>
   <div id="overlay" class="overlay" aria-live="polite">
@@ -192,7 +227,10 @@ export function renderWebviewHtml(cspSource: string, stream?: ServeSimStream): s
       <div id="devices" class="body"></div>
       <div class="footer">
         <span id="status">Checking installed simulators...</span>
-        <button id="refresh" class="refresh" type="button">Refresh</button>
+        <div class="footer-actions">
+          <button id="retryFromPicker" class="refresh" type="button">Retry Preview</button>
+          <button id="refresh" class="refresh" type="button">Refresh</button>
+        </div>
       </div>
     </section>
   </div>
@@ -205,6 +243,11 @@ export function renderWebviewHtml(cspSource: string, stream?: ServeSimStream): s
     const devicesEl = document.getElementById("devices");
     const statusEl = document.getElementById("status");
     const refreshEl = document.getElementById("refresh");
+    const retryEl = document.getElementById("retryPreview");
+    const retryFromPickerEl = document.getElementById("retryFromPicker");
+    const chooseSimulatorEl = document.getElementById("chooseSimulator");
+    const restartPreviewEl = document.getElementById("restartPreview");
+    const stopPreviewEl = document.getElementById("stopPreview");
     let bootingUdid = null;
     let forceDevicePicker = false;
 
@@ -226,12 +269,20 @@ export function renderWebviewHtml(cspSource: string, stream?: ServeSimStream): s
       requestState();
     }
 
+    function showDevicePicker() {
+      forceDevicePicker = true;
+      overlay.classList.add("visible");
+      requestState();
+    }
+
     function showPreview(stream) {
       if (stream && preview.getAttribute("src") !== stream.url) {
         preview.setAttribute("src", stream.url);
       }
       preview.classList.remove("pending");
       statusScreen.classList.add("hidden");
+      forceDevicePicker = false;
+      overlay.classList.remove("visible");
     }
 
     function renderDevices(devices) {
@@ -313,6 +364,11 @@ export function renderWebviewHtml(cspSource: string, stream?: ServeSimStream): s
     });
 
     refreshEl.addEventListener("click", requestState);
+    retryEl.addEventListener("click", () => vscode.postMessage({ type: "retryPreview" }));
+    retryFromPickerEl.addEventListener("click", () => vscode.postMessage({ type: "retryPreview" }));
+    chooseSimulatorEl.addEventListener("click", showDevicePicker);
+    restartPreviewEl.addEventListener("click", () => vscode.postMessage({ type: "restartPreview" }));
+    stopPreviewEl.addEventListener("click", () => vscode.postMessage({ type: "stopPreview" }));
     vscode.postMessage({ type: "ready" });
     ${stream ? `showPreview({ url: "${url}" });` : ""}
     setInterval(requestState, 2500);

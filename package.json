@@ -102,12 +102,6 @@
         "title": "Restart",
         "category": "Serve Sim",
         "icon": "$(refresh)"
-      },
-      {
-        "command": "serveSim.openExternal",
-        "title": "Open in Browser",
-        "category": "Serve Sim",
-        "icon": "$(link-external)"
       }
     ],
     "configuration": {
@@ -163,11 +157,6 @@
           "command": "serveSim.stop",
           "when": "webview == serveSim.preview",
           "group": "navigation@3"
-        },
-        {
-          "command": "serveSim.openExternal",
-          "when": "webview == serveSim.preview",
-          "group": "navigation@4"
         }
       ],
       "commandPalette": [
@@ -179,7 +168,6 @@
   },
   "activationEvents": [
     "onCommand:serveSim.open",
-    "onCommand:serveSim.openExternal",
     "onCommand:serveSim.restart",
     "onCommand:serveSim.start",
     "onCommand:serveSim.stop",
