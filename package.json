@@ -1,0 +1,186 @@
+{
+  "name": "serve-sim",
+  "displayName": "Serve Sim",
+  "description": "Run serve-sim inside VS Code and Cursor.",
+  "version": "0.0.1",
+  "publisher": "jingjing2222",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jingjing2222/serve-sim-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jingjing2222/serve-sim-extension/issues"
+  },
+  "homepage": "https://github.com/jingjing2222/serve-sim-extension#readme",
+  "engines": {
+    "vscode": "^1.93.0",
+    "node": ">=20"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "serve-sim",
+    "ios",
+    "simulator",
+    "cursor",
+    "vscode"
+  ],
+  "main": "./dist/extension.js",
+  "extensionKind": [
+    "ui"
+  ],
+  "activationEvents": [
+    "onCommand:serveSim.start",
+    "onCommand:serveSim.open",
+    "onCommand:serveSim.stop",
+    "onCommand:serveSim.stopAll",
+    "onCommand:serveSim.restart",
+    "onCommand:serveSim.openExternal"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "serveSim.start",
+        "title": "Start",
+        "category": "Serve Sim",
+        "icon": "$(play)"
+      },
+      {
+        "command": "serveSim.open",
+        "title": "Open Panel",
+        "category": "Serve Sim",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "serveSim.stop",
+        "title": "Stop Active Stream",
+        "category": "Serve Sim",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "serveSim.stopAll",
+        "title": "Stop All Streams",
+        "category": "Serve Sim",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "serveSim.restart",
+        "title": "Restart",
+        "category": "Serve Sim",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "serveSim.openExternal",
+        "title": "Open in Browser",
+        "category": "Serve Sim",
+        "icon": "$(link-external)"
+      }
+    ],
+    "configuration": {
+      "title": "Serve Sim",
+      "properties": {
+        "serveSim.executablePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the serve-sim CLI. Empty uses workspace node_modules, PATH, then npx."
+        },
+        "serveSim.port": {
+          "type": "number",
+          "default": 3200,
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Starting port passed to serve-sim."
+        },
+        "serveSim.packageSpec": {
+          "type": "string",
+          "default": "serve-sim@latest",
+          "description": "Package spec used by npx when no local or PATH CLI is available."
+        },
+        "serveSim.autoOpenPanel": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open the Serve Sim panel after starting a stream."
+        },
+        "serveSim.codec": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "h264",
+            "mjpeg"
+          ],
+          "default": "auto",
+          "description": "Stream codec passed to serve-sim."
+        }
+      }
+    },
+    "menus": {
+      "webview/title": [
+        {
+          "command": "serveSim.start",
+          "when": "webview == serveSim.preview",
+          "group": "navigation@1"
+        },
+        {
+          "command": "serveSim.restart",
+          "when": "webview == serveSim.preview",
+          "group": "navigation@2"
+        },
+        {
+          "command": "serveSim.stop",
+          "when": "webview == serveSim.preview",
+          "group": "navigation@3"
+        },
+        {
+          "command": "serveSim.openExternal",
+          "when": "webview == serveSim.preview",
+          "group": "navigation@4"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "serveSim.stopAll"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run build",
+    "build": "pnpm run check-types && node esbuild.js --production",
+    "compile": "pnpm run check-types && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "test": "vitest run",
+    "test:extension": "pnpm build && pnpm compile-tests && node ./dist/test/run-test.js",
+    "compile-tests": "tsc -p src/test/tsconfig.json",
+    "watch-tests": "tsc -p src/test/tsconfig.json --watch",
+    "check-types": "tsc --noEmit",
+    "package": "vsce package --no-dependencies",
+    "publish:vsce": "vsce publish --no-dependencies",
+    "publish:ovsx": "pnpm build && ovsx publish",
+    "verify": "pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.2",
+    "@types/vscode": "1.93.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.25.0",
+    "mocha": "^11.0.1",
+    "npm-run-all": "^4.1.5",
+    "ovsx": "^0.10.4",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.4"
+  },
+  "packageManager": "pnpm@11.0.9",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@vscode/vsce-sign",
+      "esbuild",
+      "keytar"
+    ]
+  }
+}

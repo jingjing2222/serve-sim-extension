@@ -1,0 +1,40 @@
+name: Publish extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Publish target"
+        required: true
+        default: "both"
+        type: choice
+        options:
+          - both
+          - marketplace
+          - open-vsx
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.0.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm build
+      - name: Publish to Visual Studio Marketplace
+        if: inputs.target == 'both' || inputs.target == 'marketplace'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: pnpm publish:vsce -p "$VSCE_PAT"
+      - name: Publish to Open VSX
+        if: inputs.target == 'both' || inputs.target == 'open-vsx'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: pnpm publish:ovsx -p "$OVSX_PAT"
