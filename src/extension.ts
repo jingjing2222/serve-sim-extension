@@ -26,17 +26,6 @@ export function activate(context: vscode.ExtensionContext): void {
       previewProcess = next.process;
       return next.stream;
     },
-    restartPreview: async (reportStatus) => {
-      await stopActivePreview(context, output, previewProcess);
-      previewProcess = undefined;
-      const next = await startPreview(context, output, undefined, reportStatus);
-      previewProcess = next.process;
-      return next.stream;
-    },
-    stopPreview: async () => {
-      await stopActivePreview(context, output, previewProcess);
-      previewProcess = undefined;
-    },
     bootSimulator: async (udid) => {
       await bootSimulator(udid);
       await stopActivePreview(context, output, previewProcess);

@@ -15,8 +15,6 @@ export class ServeSimPanel {
     private readonly handlers: {
       getSimulatorState(): Promise<SimulatorState>;
       startPreview(reportStatus?: (message: string) => Promise<void>): Promise<ServeSimStream>;
-      restartPreview(reportStatus?: (message: string) => Promise<void>): Promise<ServeSimStream>;
-      stopPreview(): Promise<void>;
       bootSimulator(udid: string): Promise<ServeSimStream>;
     },
   ) {}
@@ -76,22 +74,6 @@ export class ServeSimPanel {
     }
     if (type === "startPreview" || type === "retryPreview") {
       await this.runPreviewAction("Starting Serve Sim preview...", this.handlers.startPreview);
-      return;
-    }
-    if (type === "restartPreview") {
-      await this.runPreviewAction("Restarting Serve Sim preview...", this.handlers.restartPreview);
-      return;
-    }
-    if (type === "stopPreview") {
-      try {
-        await this.handlers.stopPreview();
-        this.stream = undefined;
-        this.reveal();
-        await this.postStatus("Serve Sim preview stopped.");
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        await this.panel?.webview.postMessage({ type: "previewError", message });
-      }
       return;
     }
     if (type === "bootSimulator") {
