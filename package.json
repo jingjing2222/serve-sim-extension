@@ -51,9 +51,12 @@
     "package": "vsce package --no-dependencies",
     "publish:vsce": "vsce publish --no-dependencies",
     "publish:ovsx": "pnpm build && ovsx publish",
+    "changeset": "changeset",
+    "release": "pnpm package && vsce publish --no-dependencies -p \"$VSCODE_PAT\" && ovsx publish *.vsix -p \"$VSX_PAT\"",
     "verify": "pnpm test && pnpm build"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.10.2",
     "@types/vscode": "1.93.0",

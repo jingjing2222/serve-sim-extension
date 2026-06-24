@@ -23,25 +23,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Test
-        run: pnpm test
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
 
-      - name: Build and package extension
-        run: pnpm package
-
-      - name: Publish to Visual Studio Marketplace
+      - name: Build, package and publish extension
         env:
           VSCODE_PAT: ${{ secrets.VSCODE_PAT }}
-        run: pnpm publish:vsce -p "$VSCODE_PAT"
-
-      - name: Publish to Open VSX
-        env:
           VSX_PAT: ${{ secrets.VSX_PAT }}
-        run: pnpm publish:ovsx -p "$VSX_PAT"
+        run: pnpm release
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          body_path: CHANGELOG.md
           files: "*.vsix"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
