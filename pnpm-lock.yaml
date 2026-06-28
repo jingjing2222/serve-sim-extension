@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@changesets/apply-release-plan':
+        specifier: ^7.1.1
+        version: 7.1.1
       '@changesets/cli':
         specifier: ^2.31.0
         version: 2.31.0(@types/node@22.20.0)

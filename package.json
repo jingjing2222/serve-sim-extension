@@ -52,10 +52,12 @@
     "publish:vsce": "vsce publish --no-dependencies",
     "publish:ovsx": "pnpm build && ovsx publish",
     "changeset": "changeset",
+    "release-notes": "node scripts/extract-release-notes.mjs",
     "release": "pnpm package && vsce publish --no-dependencies -p \"$VSCODE_PAT\" && ovsx publish *.vsix -p \"$VSX_PAT\"",
     "verify": "pnpm test && pnpm build"
   },
   "devDependencies": {
+    "@changesets/apply-release-plan": "^7.1.1",
     "@changesets/cli": "^2.31.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.10.2",

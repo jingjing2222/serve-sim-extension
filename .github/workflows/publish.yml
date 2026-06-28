@@ -29,6 +29,9 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Generate release notes
+        run: pnpm release-notes --version "${{ steps.version.outputs.version }}" --out release-notes.md
+
       - name: Build, package and publish extension
         env:
           VSCODE_PAT: ${{ secrets.VSCODE_PAT }}
@@ -40,7 +43,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: v${{ steps.version.outputs.version }}
-          body_path: CHANGELOG.md
+          body_path: release-notes.md
           files: "*.vsix"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
